@@ -1,7 +1,7 @@
 import gulp from "gulp";
 import { deleteAsync } from "del";
 import gulpSass from "gulp-sass";
-import dartSass from "sass";
+import * as dartSass from "sass";
 import gulpRename from "gulp-rename";
 import cleanCss from "gulp-clean-css";
 import babel from "gulp-babel";
@@ -10,6 +10,7 @@ import notify from "gulp-notify";
 import concat from "gulp-concat";
 import gulpSourcemaps from "gulp-sourcemaps";
 import browserSync from "browser-sync";
+import autoprefixer from "gulp-autoprefixer"
 const sass = gulpSass(dartSass);
 
 
@@ -42,12 +43,19 @@ function clean() {
 
 function styles() {
   return gulp.src(paths.styles.src)
+    .pipe(gulpSourcemaps.init())
     .pipe(sass())
-    .pipe(cleanCss())
+    .pipe(autoprefixer({
+      cascade: false
+    }))
+    .pipe(cleanCss({
+      level: 2
+    }))
     .pipe(gulpRename({
       basename: "style",
       suffix: ".min"
     }))
+    .pipe(gulpSourcemaps.write())
     .pipe(gulp.dest(paths.styles.dest))
 }
 
@@ -73,7 +81,7 @@ function scripts() {
       })
     )
     .pipe(uglify.default().on("error", notify.onError()))
-    .pipe(gulpSourcemaps.write("."))
+    .pipe(gulpSourcemaps.write("./"))
     .pipe(gulp.dest(paths.scripts.dest))
     .pipe(browserSync.stream());
 }
