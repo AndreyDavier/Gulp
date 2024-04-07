@@ -1,4 +1,4 @@
-import gulp from "gulp";
+import gulp, { dest } from "gulp";
 import { deleteAsync } from "del";
 import gulpSass from "gulp-sass";
 import * as dartSass from "sass";
@@ -10,7 +10,9 @@ import notify from "gulp-notify";
 import concat from "gulp-concat";
 import gulpSourcemaps from "gulp-sourcemaps";
 import browserSync from "browser-sync";
-import autoprefixer from "gulp-autoprefixer"
+import autoprefixer from "gulp-autoprefixer";
+import imagemin from "gulp-imagemin";
+import htmlmin from "gulp-htmlmin";
 const sass = gulpSass(dartSass);
 
 
@@ -31,6 +33,10 @@ const paths = {
   scripts: {
     src: "src/scripts/**/*.js",
     dest: "app/js/"
+  },
+  images: {
+    src: "src/img/*",
+    dest: "app/img"
   }
 
 
@@ -39,6 +45,12 @@ const paths = {
 
 function clean() {
   return deleteAsync(["app/"]);
+}
+
+function html() {
+  return gulp.src(paths.html.src)
+    .pipe(htmlmin({ collapseWhitespace: true }))
+    .pipe(gulp.dest(paths.html.dest));
 }
 
 function styles() {
@@ -55,8 +67,16 @@ function styles() {
       basename: "style",
       suffix: ".min"
     }))
-    .pipe(gulpSourcemaps.write())
+    .pipe(gulpSourcemaps.write("./"))
     .pipe(gulp.dest(paths.styles.dest))
+}
+
+function img() {
+  return gulp.src(paths.images.src)
+    .pipe(imagemin({
+      progressive: true
+    }))
+    .pipe(gulp.dest(paths.images.dest))
 }
 
 function watch() {
@@ -66,7 +86,8 @@ function watch() {
 
 const build = gulp.series(
   clean,
-  gulp.parallel(styles, scripts),
+  html,
+  gulp.parallel(styles, scripts, img),
   watch
 )
 
@@ -91,6 +112,9 @@ export { clean };
 export { styles as css };
 export { watch };
 export { scripts };
+export { img };
+export { html };
+
 
 
 
