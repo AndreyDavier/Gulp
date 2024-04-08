@@ -13,6 +13,10 @@ import browserSync from "browser-sync";
 import autoprefixer from "gulp-autoprefixer";
 import imagemin from "gulp-imagemin";
 import htmlmin from "gulp-htmlmin";
+import size from "gulp-size";
+import newer from "gulp-newer";
+import ts from "gulp-typescript";
+
 const sass = gulpSass(dartSass);
 
 
@@ -26,13 +30,13 @@ const paths = {
   },
 
   styles: {
-    src: "src/styles/**/*.scss",
-    dest: "app/css/"
+    src: ["src/styles/**/*.scss", "src/styles/**/*.sass"],
+    dest: "app/styles/"
   },
 
   scripts: {
-    src: "src/scripts/**/*.js",
-    dest: "app/js/"
+    src: ["src/scripts/**/*.js", "src/scripts/**/*.ts"],
+    dest: "app/scripts/"
   },
   images: {
     src: "src/img/*",
@@ -44,13 +48,19 @@ const paths = {
 
 
 function clean() {
-  return deleteAsync(["app/"]);
+  return deleteAsync(["app/", "!app/img"]);
 }
 
 function html() {
   return gulp.src(paths.html.src)
-    .pipe(htmlmin({ collapseWhitespace: true }))
-    .pipe(gulp.dest(paths.html.dest));
+    .pipe(htmlmin({
+      collapseWhitespace: true
+    }))
+    .pipe(size({
+      showFiles: true
+    }))
+    .pipe(gulp.dest(paths.html.dest))
+    .pipe(browserSync.stream());
 }
 
 function styles() {
@@ -63,23 +73,37 @@ function styles() {
     .pipe(cleanCss({
       level: 2
     }))
-    .pipe(gulpRename({
-      basename: "style",
-      suffix: ".min"
-    }))
-    .pipe(gulpSourcemaps.write("./"))
+    // .pipe(gulpRename({
+    //   basename: "style",
+    //   suffix: ".min"
+    // }))
+    .pipe(gulpSourcemaps.write(""))
+    .pipe(size())
     .pipe(gulp.dest(paths.styles.dest))
+    .pipe(browserSync.stream());
 }
 
 function img() {
   return gulp.src(paths.images.src)
+    .pipe(newer(paths.images.dest))
+
     .pipe(imagemin({
       progressive: true
+    }))
+    .pipe(size({
+      showFiles: true
     }))
     .pipe(gulp.dest(paths.images.dest))
 }
 
 function watch() {
+  browserSync.init({
+    server: {
+      baseDir: "app",
+    },
+  });
+  gulp.watch("src/*html", html);
+  gulp.watch(paths.images.src, img);
   gulp.watch(paths.styles.src, styles);
   gulp.watch(paths.scripts.src, scripts);
 }
@@ -92,8 +116,11 @@ const build = gulp.series(
 )
 
 function scripts() {
-  return gulp
-    .src(paths.scripts.src)
+  return gulp.src(paths.scripts.src)
+    .pipe(ts({
+      noImplicitAny: true,
+      outFile: 'scripts.js'
+    }))
     .pipe(gulpSourcemaps.init())
     .pipe(concat("scripts.js"))
     .pipe(
@@ -104,6 +131,9 @@ function scripts() {
     .pipe(uglify.default().on("error", notify.onError()))
     .pipe(gulpSourcemaps.write("./"))
     .pipe(gulp.dest(paths.scripts.dest))
+    .pipe(size({
+      showFiles: true
+    }))
     .pipe(browserSync.stream());
 }
 
@@ -114,6 +144,7 @@ export { watch };
 export { scripts };
 export { img };
 export { html };
+
 
 
 

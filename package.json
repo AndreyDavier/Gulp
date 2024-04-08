@@ -27,15 +27,18 @@
     "gulp-htmlmin": "^5.0.1",
     "gulp-image": "^6.3.1",
     "gulp-imagemin": "^9.0.0",
+    "gulp-newer": "^1.4.0",
     "gulp-notify": "^4.0.0",
     "gulp-rename": "^2.0.0",
     "gulp-sass": "^5.1.0",
     "gulp-size": "^5.0.0",
     "gulp-sourcemaps": "^3.0.0",
+    "gulp-typescript": "^6.0.0-alpha.1",
     "gulp-uglify": "^3.0.2",
     "gulp-uglify-es": "^3.0.0",
     "gulp-util": "^3.0.8",
-    "sass": "^1.56.1"
+    "sass": "^1.56.1",
+    "typescript": "^5.4.4"
   },
   "description": ""
 }
